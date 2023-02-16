@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -15,6 +16,7 @@ const (
 )
 
 var addr = flag.String("addr", ":8765", "http service address")
+var prefix = flag.String("prefix", "", "http service url prefix default: ''")
 
 func main() {
 	flag.Parse()
@@ -26,15 +28,17 @@ func main() {
 	// 加载模版文件
 	router.LoadHTMLGlob("tmpls/*")
 	// 日志查看页面
-	router.GET("/log", func(c *gin.Context) {
+	router.GET(*prefix+"/log", func(c *gin.Context) {
 		pathMd5, tailN := c.DefaultQuery(param_md5, logFiles.first), c.DefaultQuery(tail_n, "")
 		data := struct {
-			FS map[string]*LogFile
-			F  *LogFile
-			TN string
+			FS        map[string]*LogFile
+			F         *LogFile
+			TN        string
+			UrlPrefix string
 		}{
-			FS: logFiles.m,
-			TN: tailN,
+			FS:        logFiles.m,
+			TN:        tailN,
+			UrlPrefix: *prefix,
 		}
 		if logFile, ok := logFiles.m[pathMd5]; ok {
 			data.F = logFile
@@ -44,7 +48,7 @@ func main() {
 		c.HTML(http.StatusOK, html_log, data)
 	})
 	// tail日志输出websocket地址
-	router.GET("/ws", func(c *gin.Context) {
+	router.GET(*prefix+"/ws", func(c *gin.Context) {
 		pathMd5, tailN := c.DefaultQuery(param_md5, logFiles.first), c.DefaultQuery(tail_n, "")
 		tailOptions := make([]string, 0)
 		_, err := strconv.Atoi(tailN)
@@ -57,6 +61,7 @@ func main() {
 			serveWs(c.Writer, c.Request, "", tailOptions)
 		}
 	})
+	log.Printf("URL: %s%s/log\n", *addr, *prefix)
 
 	router.Run(*addr)
 }

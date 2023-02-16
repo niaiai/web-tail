@@ -167,7 +167,7 @@
         };
         // 切换url
         function reload(){
-            var url = "/log";
+            var url = "log";
             var md5 = urlParam.md5;
             var n = urlParam.n;
             if(md5){
@@ -312,7 +312,7 @@
             // 文档的总高度
             var scrollHeight = 0, bodyScrollHeight = 0, documentScrollHeight = 0;
 
-        　　 if(document.body){
+             if(document.body){
                 bodyScrollTop = document.body.scrollTop;
                 bodyScrollHeight = document.body.scrollHeight;
             }
@@ -340,8 +340,9 @@
         function genSysMsg(msg){
             return {msg: msg, kind: "sys"};
         }
+        var protocol =  (window.location.protocol === "https:") ? "wss:":"ws:";
         // 创建websocket连接
-        var conn = new WebSocket("ws://" + host + (port ? (":" + port) : "") + "/ws"+window.location.search);
+        var conn = new WebSocket(protocol + "//" + host + (port ? (":" + port) : "") +"{{.UrlPrefix}}/ws"+window.location.search);
         // 连接打开事件
         conn.onopen = function () {
             console.log("Socket 已打开");
