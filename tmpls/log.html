@@ -56,6 +56,8 @@
         {{$TN := .TN}}
         <div style="float: left;">当前日志文件: <label title="{{$F.Path}}">{{$F.Alias}}</label></div>
         <div style="float: right;">
+            匹配：<input type="text" id="ok" oninput="getOkValue();" onporpertychange="getOkValue();">
+            不匹配：<input type="text" id="nook" oninput="getNoValue();" onporpertychange="getNoValue();">
             <a href="javascript:void(0);" onclick="closeConn()" style="color:#dc3545;">断开ESC</a><label>|</label><a href="javascript:void(0);" onclick="clearScreen()" style="color:#ffc107;">清屏Ctrl-l</a><label>|</label><a href="javascript:void(0);" onclick="pause()" style="color:#007bff;" class="pause">暂停Space</a>
             theme:
             <select id="theme" onchange="themeChg(this)">
@@ -272,6 +274,31 @@
             }
             return "";
         }
+
+        var ok = []
+        var nook = []
+        // 监听input输入框的值变化
+        function getOkValue(){
+            // 获取input输入框的值
+            var value=document.getElementById("ok").value;
+            // 输出值
+            if (value == "") {
+                ok = []
+                return
+            }
+            ok = value.split("|")
+        }
+        function getNoValue(){
+            // 获取input输入框的值
+            var value=document.getElementById("nook").value;
+            // 输出值
+            if (value == "") {
+                nook = []
+                return
+            }
+            nook = value.split("|")
+        }
+
         // 输出日志
         function append(data){
             if(data){
@@ -282,6 +309,19 @@
                 li.className = data.kind||"";
                 li.textContent = data.msg||data;
                 if(data.kind == "log"){
+                    if (data.msg != null) {
+                        for (var i = nook.length - 1; i >= 0; i--) {
+                            if (data.msg.includes(nook[i])) {
+                                return
+                            }
+                        }
+                        for (var i = ok.length - 1; i >= 0; i--) {
+                            if (!data.msg.includes(ok[i])) {
+                                return
+                            }
+                        }
+                    }
+
                     var c = logColor(data.msg||data);
                     if(c){
                         li.style.color = c;
